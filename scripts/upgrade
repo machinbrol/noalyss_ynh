@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #=================================================
 # GENERIC START
 #=================================================
@@ -10,21 +9,39 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+# LOAD SETTINGS
 #=================================================
 
+app       = $YNH_APP_INSTANCE_NAME
+
+path_url  = $(ynh_app_setting_get $app path)
+final_path= $(ynh_app_setting_get $app final_path)
+
+#=================================================
+# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+#=================================================
 ynh_backup_before_upgrade
 ynh_clean_setup () {
     ynh_restore_upgradebackup
 }
 ynh_abort_if_errors
 
-#save database qnd config before replace all files
+#=================================================
+# ADD FILES TO BACKUP
+#=================================================
+
+#save database and config before replace all files
 sudo -i -u postgres
 pg_dumpall > noalyss_backup.dmp
-sudo cp -a noalyss/include/config.inc.php etc/tmp/
+ynh_backup 'noalyss_backup.dmp' 'conf/noalyss_backup.dmp'
+ynh_backup $final_path '/include/config.inc.php' 'etc/tmp/'
 
+#Import new files
+sudo cp -a ../sources/html/ $final_path
+sudo cp -a ../sources/include/ $final_path
 
+#Restore files config
+ynh_restore_file 'noalyss/include/config.inc.php'
 #=================================================
 # RELOAD NGINX
 #=================================================
