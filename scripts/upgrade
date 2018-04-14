@@ -42,6 +42,7 @@ sudo cp -a ../sources/include/ $final_path
 
 #Restore files config
 ynh_restore_file 'noalyss/include/config.inc.php'
+
 #=================================================
 # RELOAD NGINX
 #=================================================
